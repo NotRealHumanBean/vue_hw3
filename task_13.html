@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/mustard-ui@latest/dist/css/mustard-ui.min.css">
+    <link rel="stylesheet" href="task.css">
+    <title>Task 1</title>
+</head>
+<!-- Тренажер додавання. Вводимо загальну кількість прикладів і натискаємо на кнопку «Старт».
+  Після запуску (натисканні на кнопку «Старт») кожні 10 секунд (10 секунд між завданнями) користувачу 
+  задають випадковий приклад з додавання двох цифр і робиться перевірка. Формується список  тих, які він відповів правильно,
+   і які він відповів неправильно. Загальна кількість прикладів вводиться. -->
+
+<body>
+    <div id="app" class="app">
+        <div class="samples-container">
+            <div class="initial-sample">
+                <div class="initial-sample-input">
+                    <label>Загальна кiлькiсть прикладiв: </label>
+                    <input type="number" v-model.number.lazy="samples">
+                </div>
+
+                <button @click="startCount" class="color-one">Start</button>
+            </div>
+
+            <div class="sample">
+                <p v-if="number1 && number2" class="sample-numbers">{{number1}} + {{number2}}</p>
+                <div class="check-wrapper">
+                    <div class="answer-wrapper">
+                        <label>Ваша відповідь: </label>
+                        <input type="number" v-model.number="result">
+                    </div>
+                    <button @click="checkAnswer" class="color-one">Check</button>
+                </div>
+                <div v-if="samples">
+                    <p v-if="samples != 0">До наступного прикладу залишилось {{seconds}} секунд</p>
+                </div>
+            </div>
+        </div>
+        <div v-if="checkCount == 0" class="answers-block">
+            <div class="answers-container">
+                <div class="answer">
+                    <h3>Правильні відповіді</h3>
+                    <template v-for="el in goodAnswers">
+                        <p>{{el}}</p>
+                    </template>
+                </div>
+                <div class="answer">
+                    <h3>Неправильні відповіді</h3>
+                    <template v-for="el in badAnswers">
+                        <p>{{el}}</p>
+                    </template>
+                </div>
+            </div>
+            <div class="again-block">
+                <button @click="startAgain" class="color-one">again</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        createApp({
+            data() {
+                return {
+                    samples: null,
+                    number1: null,
+                    number2: null,
+                    result: null,
+                    seconds: 10,
+                    intervalId: null,
+                    checkCount: null,
+                    goodAnswers: [],
+                    badAnswers: []
+                }
+            },
+            computed: {
+                isanswerCorrect() {
+                    if ((this.number1 && this.number2) && (this.number1 + this.number2 == this.result)) {
+                        return true
+                    }
+                },
+            },
+            methods: {
+                async startCount() {
+                    this.checkCount = this.samples
+                    this.startTimer()
+                    for (let index = this.samples; index > 0; index--) {
+                        this.genSample()
+                        await delay(10000);
+                    }
+                },
+                startTimer() {
+                    if (this.intervalId) {
+                        clearInterval(this.intervalId);
+                    }
+                    this.intervalId = setInterval(() => { this.checkTimer() }, 1000);
+                },
+                genSample() {
+                    this.number1 = Math.floor(Math.random() * 101)
+                    this.number2 = Math.floor(Math.random() * 101)
+                    this.samples--
+                },
+                checkAnswer() {
+                    this.checkCount--
+                    if (this.isanswerCorrect) {
+                        this.goodAnswers.push(`${this.number1} + ${this.number2} = ${this.result}`)
+                        this.result = null
+                    } else {
+                        this.badAnswers.push(`${this.number1} + ${this.number2} = ${this.result}`)
+                        this.result = null
+                    }
+
+                },
+                timeForSample() {
+                    if (this.samples <= 0) {
+                        clearInterval(this.intervalId);
+                    }
+                },
+                checkTimer() {
+                    this.seconds--
+                    if (this.seconds < 1) {
+                        this.seconds = 10;
+                        this.timeForSample();
+                    }
+                },
+                startAgain() {
+                    this.samples = null
+                    this.result = null
+                    this.number1 = null
+                    this.number2 = null
+                    this.goodAnswers = []
+                    this.badAnswers = []
+                    this.checkCount = null
+                }
+
+            },
+
+        },
+        ).mount('#app')
+    </script>
+</body>
+
+</html>

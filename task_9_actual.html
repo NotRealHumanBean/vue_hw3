@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/mustard-ui@latest/dist/css/mustard-ui.min.css">
+    <link rel="stylesheet" href="task.css">
+    <title>Task 2</title>
+</head>
+<!-- 
+Задача 9. Перекладач. Користувачу виводять змішані картки з словами на англійській і українській мові.
+Користувач поступово клікає на картки (виділяємо синьою рамкою). Якщо знайдено правильні пари карток,
+що відповідають одному слову, то видаляємо ці картки. Інакше - виділяємо червоною рамкою і через секунду
+забираємо рамку.Задача 9. Перекладач. Користувачу виводять змішані картки з словами на англійській і українській мові.
+Користувач поступово клікає на картки (виділяємо синьою рамкою). Якщо знайдено правильні пари карток, що відповідають одному слову,
+то видаляємо ці картки. Інакше - виділяємо червоною рамкою і через секунду забираємо рамку.
+ -->
+
+<body>
+    <div id="app" class="app-center">
+        <div class="task-container">
+            <div class="block block-eng">
+                <template v-for="(word, index) in engWords" :key="word.id">
+                    <p @click="onClick(word.id, $event, index)">{{word.text}}</p>
+                </template>
+            </div>
+            <div class="block">
+                <template v-for="(word, index) in ukrWords" :key="word.id">
+                    <p @click="onClick(word.id, $event, index)">{{word.text}}</p>
+                </template>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { createApp } = Vue
+        createApp({
+            data() {
+                return {
+                    currentEng: null,
+                    currentUkr: null,
+                    correctTr: null,
+                    currentIndex: {
+                        eng: null,
+                        ukr: null,
+                    },
+                    words: [
+                        { id: 0, en: "table", ua: "стіл" },
+                        { id: 1, en: "car", ua: "aвтомобіль" },
+                        { id: 2, en: "bus", ua: "автобус" },
+                        { id: 3, en: "man", ua: "людина" },
+                        { id: 4, en: "boy", ua: "хлопець" },
+                    ],
+                    engWords: [],
+                    ukrWords: [],
+                }
+            },
+            methods: {
+                returnEngWords() {
+                    this.words.forEach(word => this.engWords.push({
+                        id: word.id,
+                        text: word.en
+                    }))
+                    this.engWords.reverse()
+                },
+                returnUkrWords() {
+                    this.words.forEach(word => this.ukrWords.push({
+                        id: word.id,
+                        text: word.ua
+                    }))
+                },
+                onClick(id, event, index) {
+                    let p = event.target
+                    if (p.innerText == this.engWords[index].text) {
+                        this.currentEng = p.innerText
+                        this.currentIndex.eng = index
+                    } else if (p.innerText === this.ukrWords[index].text) {
+                        this.currentUkr = p.innerText
+                        this.currentIndex.ukr = index
+                    }
+                    //=================================================================================
+                    p.style.borderColor = 'blue'
+                    this.checkTranslation(p, index)
+                    this.onDelete(index)
+                },
+                checkTranslation(p, index) {
+                    if (this.currentEng && this.currentUkr) {
+                        this.words.forEach((words) => {
+                            if (this.currentEng === words.en && this.currentUkr === words.ua) {
+                                this.correctTr = true
+                            }
+                            else {
+                                p.style.borderColor = 'red'
+                                setTimeout(() => p.style.borderColor = 'black', 1000)
+                            }
+                        })
+                    }
+                },
+                onDelete(id, array) {
+                    if (this.correctTr) {
+                        this.engWords.splice(this.currentIndex.eng, 1)
+                        this.ukrWords.splice(this.currentIndex.ukr, 1)
+                        this.currentEng = null
+                        this.currentUkr = null
+                        this.correctTr = false
+                    }
+                }
+            },
+            mounted() {
+                this.returnEngWords()
+                this.returnUkrWords()
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
